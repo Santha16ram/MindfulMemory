@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindBloom — Meditation & Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0d14;
+  --bg2: #0f1420;
+  --surface: #141b2d;
+  --surface2: #1a2236;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --teal: #4ecdc4;
+  --teal2: #7eddd6;
+  --rose: #e8a598;
+  --text: #d4dae8;
+  --text2: #8a94aa;
+  --text3: #5a6278;
+  --white: #f0f4ff;
+  --danger: #e87070;
+  --success: #70e8a0;
+  --glow-teal: rgba(78,205,196,0.18);
+  --glow-gold: rgba(201,168,76,0.18);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.45; mix-blend-mode: overlay;
+}
+
+/* ── AMBIENT ORBS ── */
+.orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+.orb1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(78,205,196,0.08), transparent 70%); top: -100px; right: -100px; animation: orbFloat1 18s ease-in-out infinite; }
+.orb2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(201,168,76,0.07), transparent 70%); bottom: -80px; left: -80px; animation: orbFloat2 22s ease-in-out infinite; }
+.orb3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(232,165,152,0.06), transparent 70%); top: 50%; left: 30%; animation: orbFloat3 16s ease-in-out infinite; }
+@keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,40px)} }
+@keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+@keyframes orbFloat3 { 0%,100%{transform:translate(0,0)} 33%{transform:translate(20px,-20px)} 66%{transform:translate(-20px,20px)} }
+
+/* ── SCREENS ── */
+.screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1.5rem;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  overflow-y: auto;
+}
+.screen.hidden { opacity: 0; pointer-events: none; transform: translateY(10px); }
+.screen.exit { opacity: 0; transform: translateY(-10px); }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.8rem 2rem; border-radius: 50px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+  cursor: pointer; border: none; outline: none;
+  transition: all 0.25s ease; letter-spacing: 0.03em;
+  position: relative; overflow: hidden;
+}
+.btn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: background 0.2s; }
+.btn:hover::after { background: rgba(255,255,255,0.06); }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--teal), #38b2ac);
+  color: #0a1a18; font-weight: 600;
+  box-shadow: 0 4px 24px rgba(78,205,196,0.3);
+}
+.btn-primary:hover { box-shadow: 0 6px 32px rgba(78,205,196,0.45); transform: translateY(-1px); }
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), #b8953e);
+  color: #1a1200; font-weight: 600;
+  box-shadow: 0 4px 24px rgba(201,168,76,0.3);
+}
+.btn-gold:hover { box-shadow: 0 6px 32px rgba(201,168,76,0.45); transform: translateY(-1px); }
+
+.btn-ghost {
+  background: transparent; color: var(--text2);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.28); }
+
+.btn-outline-teal {
+  background: transparent; color: var(--teal);
+  border: 1px solid rgba(78,205,196,0.4);
+}
+.btn-outline-teal:hover { background: rgba(78,205,196,0.08); border-color: var(--teal); }
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+/* ── TYPOGRAPHY ── */
+.display {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  font-weight: 300; line-height: 1.1;
+  color: var(--white);
+  letter-spacing: -0.02em;
+}
+.display em { font-style: italic; color: var(--teal); }
+.display .gold { color: var(--gold2); }
+.subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  color: var(--text2); font-weight: 300; line-height: 1.7;
+  max-width: 520px;
+}
+.label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text3);
+}
+
+/* ─────────────────────────────────────────
+   SCREEN 1: LANDING
+───────────────────────────────────────── */
+#landing {
+  background: transparent;
+}
+.landing-inner {
+  max-width: 680px; width: 100%;
+  display: flex; flex-direction: column; gap: 1.8rem;
+  align-items: flex-start;
+}
+.logo-badge {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.4rem 1rem; border-radius: 50px;
+  border: 1px solid rgba(78,205,196,0.3);
+  background: rgba(78,205,196,0.06);
+}
+.logo-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--teal); animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+.logo-badge span { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--teal); letter-spacing: 0.1em; }
+
+.feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.pill {
+  padding: 0.3rem 0.9rem; border-radius: 50px;
+  border: 1px solid var(--border2);
+  font-size: 0.78rem; color: var(--text2);
+  background: var(--surface);
+}
+.landing-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+/* ─────────────────────────────────────────
+   SCREEN 2: PRE-GAME
+───────────────────────────────────────── */
+#pregame { background: transparent; }
+.pregame-card {
+  max-width: 560px; width: 100%;
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+.rule-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.rule-item {
+  display: flex; align-items: flex-start; gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface2); border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.rule-num {
+  width: 24px; height: 24px; flex-shrink: 0;
+  border-radius: 50%; background: rgba(78,205,196,0.15);
+  border: 1px solid rgba(78,205,196,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--teal);
+}
+.rule-text { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+
+/* ─────────────────────────────────────────
+   SCREEN 3: GAME — SHOW SEQUENCE
+───────────────────────────────────────── */
+#show-sequence { background: transparent; }
+.seq-header { text-align: center; margin-bottom: 1.5rem; }
+.countdown-ring {
+  width: 80px; height: 80px; position: relative; margin: 1.2rem auto;
+}
+.countdown-ring svg { transform: rotate(-90deg); }
+.countdown-ring .bg-ring { fill: none; stroke: var(--surface2); stroke-width: 4; }
+.countdown-ring .progress-ring { fill: none; stroke: var(--teal); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.countdown-num {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--white);
+}
+
+.emoji-grid {
+  display: grid;
+  gap: clamp(0.4rem, 2vw, 0.8rem);
+  max-width: 580px; width: 100%;
+  margin: 0 auto;
+}
+.emoji-cell {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.emoji-cell.active {
+  background: var(--surface);
+  border-color: rgba(78,205,196,0.5);
+  box-shadow: 0 0 20px rgba(78,205,196,0.2), inset 0 0 20px rgba(78,205,196,0.05);
+  transform: scale(1.06);
+}
+.emoji-cell .seq-num {
+  position: absolute; top: 3px; right: 5px;
+  font-family: 'Space Mono', monospace; font-size: 0.52rem;
+  color: var(--teal); opacity: 0.8;
+}
+
+/* ─────────────────────────────────────────
+   SCREEN 4: GAME — RECALL
+───────────────────────────────────────── */
+#recall { background: transparent; }
+.recall-header { text-align: center; margin-bottom: 1rem; }
+
+.answer-track {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0.6rem;
+  background: var(--surface2); border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 1rem; max-width: 580px; width: 100%;
+}
+.answer-slot {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; font-size: 1.2rem;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.answer-slot.filled { border-color: rgba(78,205,196,0.4); background: rgba(78,205,196,0.06); }
+.answer-slot.correct { border-color: rgba(112,232,160,0.5); background: rgba(112,232,160,0.08); animation: popIn 0.25s ease; }
+.answer-slot.wrong { border-color: rgba(232,112,112,0.5); background: rgba(232,112,112,0.08); animation: shake 0.3s ease; }
+
+@keyframes popIn { 0%{transform:scale(0.7);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+
+.progress-bar-wrap {
+  width: 100%; max-width: 580px;
+  height: 4px; background: var(--surface2); border-radius: 2px;
+  margin-bottom: 1rem;
+}
+.progress-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--teal), var(--teal2));
+  transition: width 0.3s ease;
+}
+
+.emoji-picker {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 580px; width: 100%;
+}
+.pick-btn {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+  transition: all 0.18s ease; outline: none;
+  position: relative;
+}
+.pick-btn:hover { background: var(--surface); border-color: var(--border2); transform: scale(1.05); }
+.pick-btn:active { transform: scale(0.94); }
+.pick-btn.used { opacity: 0.25; pointer-events: none; }
+.pick-btn.selected { border-color: var(--teal); background: rgba(78,205,196,0.08); box-shadow: 0 0 12px rgba(78,205,196,0.2); }
+
+.action-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 0.8rem; }
+.score-badge {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.8rem; border-radius: 50px;
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--teal);
+}
+
+/* ─────────────────────────────────────────
+   SCREEN 5: RESULTS / INFO
+───────────────────────────────────────── */
+#results { background: transparent; }
+.results-card {
+  max-width: 620px; width: 100%;
+  display: flex; flex-direction: column; gap: 1.4rem;
+}
+.score-display {
+  text-align: center; padding: 1.8rem;
+  background: var(--surface); border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.score-big {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 10vw, 5.5rem);
+  font-weight: 300; color: var(--white); line-height: 1;
+}
+.score-big .frac { font-size: 0.5em; color: var(--text2); }
+.score-label { color: var(--text3); font-size: 0.78rem; margin-top: 0.3rem; letter-spacing: 0.08em; }
+.score-grade {
+  display: inline-block; margin-top: 0.6rem;
+  padding: 0.2rem 0.8rem; border-radius: 50px;
+  font-family: 'Space Mono', monospace; font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.info-sections { display: flex; flex-direction: column; gap: 0.8rem; }
+.info-block {
+  padding: 1rem 1.2rem;
+  background: var(--surface2); border-radius: 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal);
+}
+.info-block h4 { font-size: 0.88rem; color: var(--teal2); margin-bottom: 0.3rem; font-weight: 500; }
+.info-block p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
+
+.stat-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.stat-chip {
+  flex: 1; min-width: 100px;
+  padding: 0.8rem; text-align: center;
+  background: var(--surface2); border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.stat-chip .val { font-family: 'Space Mono', monospace; font-size: 1.2rem; color: var(--white); }
+.stat-chip .lbl { font-size: 0.7rem; color: var(--text3); margin-top: 0.2rem; }
+
+/* ─────────────────────────────────────────
+   SCREEN 6: MEDITATION
+───────────────────────────────────────── */
+#meditation { background: transparent; }
+.med-inner { max-width: 560px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.4rem; }
+
+.breath-circle-wrap {
+  position: relative; width: clamp(160px, 40vw, 220px); height: clamp(160px, 40vw, 220px);
+  margin: 0 auto;
+}
+.breath-ripple {
+  position: absolute; inset: -20px; border-radius: 50%;
+  border: 1px solid rgba(78,205,196,0.2);
+  animation: rippleOut 4s ease-out infinite;
+}
+.breath-ripple:nth-child(2) { animation-delay: 1.33s; }
+.breath-ripple:nth-child(3) { animation-delay: 2.66s; }
+@keyframes rippleOut { 0%{transform:scale(0.8);opacity:0.6} 100%{transform:scale(1.4);opacity:0} }
+
+.breath-circle {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(78,205,196,0.22), rgba(78,205,196,0.04));
+  border: 1px solid rgba(78,205,196,0.35);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(78,205,196,0.1), inset 0 0 40px rgba(78,205,196,0.05);
+  position: relative; z-index: 1;
+  transition: transform 4s ease-in-out, box-shadow 4s ease-in-out;
+}
+.breath-circle.inhale { transform: scale(1.12); box-shadow: 0 0 60px rgba(78,205,196,0.2), inset 0 0 40px rgba(78,205,196,0.1); }
+.breath-circle.exhale { transform: scale(0.9); box-shadow: 0 0 20px rgba(78,205,196,0.06), inset 0 0 20px rgba(78,205,196,0.03); }
+.breath-text { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--teal2); font-style: italic; }
+.breath-count { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text3); letter-spacing: 0.12em; margin-top: 0.2rem; }
+
+.med-phase { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold2); font-style: italic; }
+.med-timer-wrap {
+  width: 100%; max-width: 360px;
+}
+.med-timer-bar {
+  height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden;
+}
+.med-timer-fill {
+  height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius: 2px; transition: width 1s linear;
+}
+.med-timer-label { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--text3); text-align: right; margin-top: 0.3rem; }
+
+.quote-box {
+  padding: 1rem 1.2rem;
+  background: var(--surface); border-radius: 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  text-align: left;
+}
+.quote-box blockquote { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-style: italic; color: var(--gold2); line-height: 1.6; }
+.quote-box cite { display: block; font-size: 0.72rem; color: var(--text3); margin-top: 0.4rem; letter-spacing: 0.06em; }
+
+.med-steps { display: flex; flex-direction: column; gap: 0.6rem; text-align: left; width: 100%; }
+.med-step {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface2); border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem; color: var(--text2);
+  transition: all 0.4s;
+}
+.med-step.active { background: var(--surface); border-color: rgba(78,205,196,0.3); color: var(--text); }
+.med-step .step-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────
+   SCREEN 7: POST-GAME RESULTS
+───────────────────────────────────────── */
+#postgame { background: transparent; }
+.postgame-card { max-width: 640px; width: 100%; display: flex; flex-direction: column; gap: 1.4rem; }
+
+.comparison-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.comp-box {
+  flex: 1; min-width: 140px;
+  padding: 1.2rem; text-align: center;
+  border-radius: 14px; border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.comp-box.improved { border-color: rgba(112,232,160,0.4); background: rgba(112,232,160,0.05); }
+.comp-box.lower { border-color: rgba(232,165,152,0.4); background: rgba(232,165,152,0.05); }
+.comp-box .comp-val { font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 300; color: var(--white); line-height: 1; }
+.comp-box.improved .comp-val { color: var(--success); }
+.comp-box .comp-lbl { font-size: 0.72rem; color: var(--text3); margin-top: 0.2rem; letter-spacing: 0.06em; }
+.comp-box .comp-badge { font-family: 'Space Mono', monospace; font-size: 0.62rem; margin-top: 0.4rem; padding: 0.15rem 0.5rem; border-radius: 50px; display: inline-block; }
+.improved .comp-badge { background: rgba(112,232,160,0.15); color: var(--success); }
+
+.improvement-banner {
+  padding: 1.4rem; border-radius: 14px; text-align: center;
+  border: 1px solid rgba(78,205,196,0.3);
+  background: linear-gradient(135deg, rgba(78,205,196,0.06), rgba(201,168,76,0.04));
+}
+.improvement-banner.encouragement {
+  border-color: rgba(201,168,76,0.3);
+  background: linear-gradient(135deg, rgba(201,168,76,0.05), rgba(232,165,152,0.04));
+}
+.improvement-banner h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--teal2); margin-bottom: 0.5rem; }
+.improvement-banner.encouragement h3 { color: var(--gold2); }
+.improvement-banner p { font-size: 0.85rem; color: var(--text2); line-height: 1.7; }
+
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem; }
+.tip-card {
+  padding: 0.9rem; border-radius: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+}
+.tip-card .tip-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+.tip-card h5 { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; }
+.tip-card p { font-size: 0.75rem; color: var(--text3); line-height: 1.5; }
+
+.postgame-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; }
+
+/* ── SOUND TOGGLE ── */
+#sound-toggle {
+  position: fixed; top: 1rem; right: 1rem; z-index: 100;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1rem; transition: all 0.2s;
+}
+#sound-toggle:hover { background: var(--surface2); }
+
+/* ── SKIP BUTTON ── */
+.skip-btn {
+  position: fixed; bottom: 1rem; right: 1rem; z-index: 100;
+  padding: 0.4rem 1rem; font-size: 0.72rem;
+  border-radius: 50px;
+}
+
+/* ── CONFETTI ── */
+.confetti-piece {
+  position: fixed; width: 8px; height: 8px;
+  top: -10px; border-radius: 2px;
+  animation: confettiFall linear forwards;
+  pointer-events: none; z-index: 9998;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  padding: 0.6rem 1.4rem; border-radius: 50px;
+  background: var(--surface); border: 1px solid var(--border2);
+  font-size: 0.82rem; color: var(--text);
+  z-index: 200; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 520px) {
+  .screen { padding: 1rem; }
+  .card { padding: 1.2rem; }
+  .comparison-row { flex-direction: column; }
+  .landing-inner { align-items: center; text-align: center; }
+  .landing-actions { justify-content: center; }
+  .feature-pills { justify-content: center; }
+  .subtitle { text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Ambient orbs -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Sound toggle -->
+<button id="sound-toggle" title="Toggle sound" onclick="toggleSound()">🔊</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: LANDING
+══════════════════════════════════════ -->
+<div class="screen" id="landing">
+  <div class="landing-inner">
+    <div class="logo-badge">
+      <div class="dot"></div>
+      <span>MINDBLOOM</span>
+    </div>
+    <h1 class="display">Your mind is a<br><em>muscle.</em> Train it<br>with <span class="gold">intention.</span></h1>
+    <p class="subtitle">Discover how just 20 minutes of guided meditation can measurably improve your focus, memory, and cognitive performance — through an interactive experience.</p>
+    <div class="feature-pills">
+      <span class="pill">🧠 Memory Game</span>
+      <span class="pill">🧘 Guided Meditation</span>
+      <span class="pill">📊 Performance Tracking</span>
+      <span class="pill">🎵 Soundscapes</span>
+    </div>
+    <div class="landing-actions">
+      <button class="btn btn-primary" onclick="goTo('pregame')">Begin Your Journey →</button>
+      <button class="btn btn-ghost" onclick="showInfo()">Learn More</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2: PRE-GAME
+══════════════════════════════════════ -->
+<div class="screen hidden" id="pregame">
+  <div class="pregame-card card">
+    <div>
+      <div class="label" style="margin-bottom:0.4rem">Round 1 of 2</div>
+      <h2 class="display" style="font-size:clamp(1.8rem,4vw,2.8rem)">The Memory<br><em>Challenge</em></h2>
+      <p class="subtitle" style="margin-top:0.6rem;font-size:0.88rem">A sequence of emojis will flash on screen. Study them carefully, then recreate the exact order from memory.</p>
+    </div>
+    <div class="rule-list">
+      <div class="rule-item">
+        <div class="rule-num">1</div>
+        <p class="rule-text">A sequence of <strong id="seq-length-display">18</strong> emojis will be shown in a grid. Each one will briefly highlight in order.</p>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">2</div>
+        <p class="rule-text">After viewing, you'll be given the emoji buttons and must tap them in the exact same sequence.</p>
+      </div>
+      <div class="rule-item">
+        <div class="rule-num">3</div>
+        <p class="rule-text">Each correct consecutive answer earns a point. Your streak ends the moment you select a wrong emoji.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="startGame()">I'm Ready →</button>
+      <button class="btn btn-ghost" onclick="goTo('landing')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3: SHOW SEQUENCE
+══════════════════════════════════════ -->
+<div class="screen hidden" id="show-sequence">
+  <div style="width:100%;max-width:580px">
+    <div class="seq-header">
+      <div class="label">Memorize This Sequence</div>
+      <div class="countdown-ring">
+        <svg viewBox="0 0 80 80" width="80" height="80">
+          <circle class="bg-ring" cx="40" cy="40" r="34"/>
+          <circle class="progress-ring" id="progress-ring" cx="40" cy="40" r="34"
+            stroke-dasharray="213.6" stroke-dashoffset="0"/>
+        </svg>
+        <div class="countdown-num" id="countdown-num">5</div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text3)">Sequence will replay automatically</p>
+    </div>
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 4: RECALL
+══════════════════════════════════════ -->
+<div class="screen hidden" id="recall">
+  <div style="width:100%;max-width:580px;display:flex;flex-direction:column;align-items:center;gap:0.8rem">
+    <div class="recall-header" style="width:100%">
+      <div class="label">Recreate the Sequence</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--white)">What was the order?</h3>
+        <div class="score-badge">Score <span id="live-score">0</span></div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="recall-progress" style="width:0%"></div>
+    </div>
+    <div class="answer-track" id="answer-track"></div>
+    <div class="emoji-picker" id="emoji-picker"></div>
+    <div class="action-row">
+      <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.5rem 1rem" onclick="undoLast()">↩ Undo</button>
+      <button class="btn btn-ghost" style="font-size:0.78rem;padding:0.5rem 1rem" onclick="showSequenceAgain()">👁 Peek (−2pts)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 5: RESULTS + INFO
+══════════════════════════════════════ -->
+<div class="screen hidden" id="results">
+  <div class="results-card">
+    <div>
+      <div class="label" style="margin-bottom:0.3rem">Your Result</div>
+      <h2 class="display" style="font-size:clamp(1.6rem,4vw,2.5rem)"><em id="result-headline">Nice effort!</em></h2>
+    </div>
+
+    <div class="score-display">
+      <div class="score-big"><span id="result-score">0</span><span class="frac"> / <span id="result-total">18</span></span></div>
+      <div class="score-label">CORRECT IN SEQUENCE</div>
+      <span class="score-grade" id="score-grade"></span>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-chip"><div class="val" id="stat-pct">0%</div><div class="lbl">Accuracy</div></div>
+      <div class="stat-chip"><div class="val" id="stat-streak">0</div><div class="lbl">Best Streak</div></div>
+      <div class="stat-chip"><div class="val" id="stat-time">0s</div><div class="lbl">Recall Time</div></div>
+    </div>
+
+    <div class="info-sections">
+      <div class="info-block">
+        <h4>🧠 Why Memory Feels Hard</h4>
+        <p>Your working memory can only hold 7±2 items at once (Miller's Law). Stress hormones like cortisol actively shrink the hippocampus — the brain's memory center — over time.</p>
+      </div>
+      <div class="info-block">
+        <h4>🧘 What Meditation Does</h4>
+        <p>Just 8 weeks of mindfulness practice increases grey matter density in the prefrontal cortex and hippocampus. Studies show a 16% improvement in working memory capacity after consistent practice.</p>
+      </div>
+      <div class="info-block">
+        <h4>⚡ The 20-Minute Effect</h4>
+        <p>A single 20-minute session reduces cortisol by up to 25%, increases alpha wave activity (associated with calm focus), and primes neural pathways for better encoding and retrieval.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="align-self:center;width:100%;max-width:360px" onclick="startMeditation()">Begin Guided Meditation →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 6: MEDITATION
+══════════════════════════════════════ -->
+<div class="screen hidden" id="meditation">
+  <div class="med-inner">
+    <div>
+      <div class="label" style="text-align:center;margin-bottom:0.3rem" id="med-phase-label">Phase 1 of 4</div>
+      <p class="med-phase" id="med-phase-title">Settling In</p>
+    </div>
+
+    <div class="breath-circle-wrap">
+      <div class="breath-ripple"></div>
+      <div class="breath-ripple"></div>
+      <div class="breath-ripple"></div>
+      <div class="breath-circle" id="breath-circle">
+        <div class="breath-text" id="breath-instruction">Breathe In</div>
+        <div class="breath-count" id="breath-count">HOLD • 4s</div>
+      </div>
+    </div>
+
+    <div class="med-timer-wrap">
+      <div class="med-timer-bar"><div class="med-timer-fill" id="med-timer-fill" style="width:0%"></div></div>
+      <div class="med-timer-label" id="med-timer-label">0:00 remaining</div>
+    </div>
+
+    <div class="quote-box" id="med-quote">
+      <blockquote>"The mind is like water. When it's turbulent, it's difficult to see. When it's calm, everything becomes clear."</blockquote>
+      <cite>— Prasad Mahes</cite>
+    </div>
+
+    <div class="med-steps" id="med-steps">
+      <div class="med-step active" id="step-0"><span class="step-icon">🌬️</span>Breathing & Grounding (3 min)</div>
+      <div class="med-step" id="step-1"><span class="step-icon">👁️</span>Body Scan Awareness (5 min)</div>
+      <div class="med-step" id="step-2"><span class="step-icon">🌊</span>Mindful Flow State (8 min)</div>
+      <div class="med-step" id="step-3"><span class="step-icon">✨</span>Integration & Clarity (4 min)</div>
+    </div>
+
+    <button class="btn btn-ghost skip-btn hidden" id="skip-med-btn" onclick="completeMeditation()">Skip Session</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 7: POST-GAME
+══════════════════════════════════════ -->
+<div class="screen hidden" id="postgame">
+  <div class="postgame-card">
+    <div>
+      <div class="label" style="margin-bottom:0.3rem">Round 2 Complete</div>
+      <h2 class="display" style="font-size:clamp(1.6rem,4vw,2.5rem)" id="postgame-headline">The Difference<br>is <em>real.</em></h2>
+    </div>
+
+    <div class="comparison-row" id="comparison-row">
+      <div class="comp-box" id="before-box">
+        <div class="comp-val" id="before-score">0</div>
+        <div class="comp-lbl">BEFORE MEDITATION</div>
+        <div class="comp-badge">Baseline</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text3)">→</div>
+      <div class="comp-box" id="after-box">
+        <div class="comp-val" id="after-score">0</div>
+        <div class="comp-lbl">AFTER MEDITATION</div>
+        <div class="comp-badge" id="after-badge">+0</div>
+      </div>
+    </div>
+
+    <div class="improvement-banner" id="improvement-banner">
+      <h3 id="banner-title">Remarkable! 🎉</h3>
+      <p id="banner-message">Your score improved after meditation. This is exactly what the science predicts — and you just experienced it firsthand.</p>
+    </div>
+
+    <div class="tips-grid">
+      <div class="tip-card"><div class="tip-icon">🌅</div><h5>Morning Practice</h5><p>10 minutes each morning sets the neurological tone for your entire day.</p></div>
+      <div class="tip-card"><div class="tip-icon">📱</div><h5>Guided Apps</h5><p>Apps like Headspace and Calm offer structured progressions for beginners.</p></div>
+      <div class="tip-card"><div class="tip-icon">🔁</div><h5>Consistency Wins</h5><p>Meditating 5x/week for 8 weeks shows measurable brain structure changes.</p></div>
+      <div class="tip-card"><div class="tip-icon">🫁</div><h5>Just Breathe</h5><p>Even 5 deep breaths (4-7-8 pattern) activates parasympathetic calm immediately.</p></div>
+    </div>
+
+    <div class="postgame-actions">
+      <button class="btn btn-primary" onclick="restartFull()">🔄 Restart Full Session</button>
+      <button class="btn btn-outline-teal" onclick="restartMedOnly()">🧘 Meditate Again</button>
+      <button class="btn btn-ghost" onclick="goTo('landing')">Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  AUDIO ENGINE
+// ═══════════════════════════════════════════
+let AC = null, soundOn = true;
+let bgNodes = {}, bgGains = {};
+
+function initAC() {
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+}
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('sound-toggle').textContent = soundOn ? '🔊' : '🔇';
+  Object.values(bgGains).forEach(g => { try { g.gain.value = soundOn ? 0.15 : 0; } catch(e){} });
+}
+function tone(freq, type, duration, vol = 0.1, delay = 0) {
+  if (!AC || !soundOn) return;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = type; o.frequency.value = freq;
+  const t = AC.currentTime + delay;
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  o.start(t); o.stop(t + duration + 0.05);
+}
+function sfxCorrect() { tone(523, 'sine', 0.12, 0.12); tone(659, 'sine', 0.12, 0.1, 0.06); }
+function sfxWrong()   { tone(220, 'sawtooth', 0.18, 0.15); tone(180, 'square', 0.15, 0.1, 0.08); }
+function sfxClick()   { tone(880, 'square', 0.05, 0.07); }
+function sfxVictory() {
+  [523,659,784,659,784,1047].forEach((f,i) => tone(f, 'sine', 0.2, 0.12, i * 0.1));
+}
+function sfxMedStart() { [261,329,392].forEach((f,i) => tone(f, 'sine', 0.5, 0.08, i * 0.15)); }
+function sfxComplete() { [392,494,587,740].forEach((f,i) => tone(f, 'sine', 0.35, 0.1, i * 0.12)); }
+
+// Procedural BGM
+function startBGM(name) {
+  stopBGM(name);
+  if (!AC || !soundOn) return;
+  const gain = AC.createGain(); gain.gain.value = soundOn ? 0.14 : 0;
+  gain.connect(AC.destination);
+  bgGains[name] = gain;
+
+  const patterns = {
+    game:  { notes:[330,392,440,494,440,392,330,294], tempo:180, wave:'triangle', bass:[165,196,220,247,220,196,165,147] },
+    meditate: { notes:[261,293,261,220,261,293,329,293], tempo:600, wave:'sine', bass:[130,146,130,110,130,146,165,146] },
+  };
+  const p = patterns[name];
+  if (!p) return;
+  let i = 0;
+  const interval = setInterval(() => {
+    if (!AC || bgGains[name] !== gain) { clearInterval(interval); return; }
+    const f = p.notes[i % p.notes.length];
+    const bf = p.bass[i % p.bass.length];
+    tone(f, p.wave, (p.tempo / 1000) * 0.75, 0.55, 0, gain);
+    if (i % 4 === 0) tone(bf, 'sine', (p.tempo / 1000) * 1.5, 0.12, 0, gain);
+    i++;
+  }, p.tempo);
+  bgNodes[name] = interval;
+}
+function stopBGM(name) {
+  if (bgNodes[name]) { clearInterval(bgNodes[name]); delete bgNodes[name]; }
+  if (bgGains[name]) { try { bgGains[name].gain.value = 0; } catch(e){} delete bgGains[name]; }
+}
+function stopAllBGM() { Object.keys(bgNodes).forEach(stopBGM); }
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+const EMOJIS = ['🌟','🔥','🌊','🌸','⚡','🎯','🦋','🌈','🎭','🍀','🦁','🌙','💎','🎵','🏔️','🌺','🦚','🎪','🌴','🦋','🎨','🌻','🦊','🍁'];
+let sequence = [];
+let seqLength = 18;
+let currentInput = [];
+let gameScore1 = 0, gameScore2 = 0;
+let gameRound = 1;
+let recallStartTime = 0;
+let recallTime = 0;
+let peekPenalty = 0;
+let bestStreak = 0;
+let currentStreak = 0;
+let gameEnded = false;
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+let currentScreen = 'landing';
+function goTo(id) {
+  const old = document.getElementById(currentScreen);
+  const next = document.getElementById(id);
+  old.classList.add('exit');
+  setTimeout(() => { old.classList.add('hidden'); old.classList.remove('exit'); }, 400);
+  next.classList.remove('hidden');
+  currentScreen = id;
+  window.scrollTo(0, 0);
+}
+
+function showInfo() {
+  showToast('Scroll down to see the science, or just start playing! 🧠');
+}
+
+// ═══════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════
+function startGame() {
+  initAC();
+  if (AC && AC.state === 'suspended') AC.resume();
+  peekPenalty = 0; currentInput = []; gameEnded = false;
+  bestStreak = 0; currentStreak = 0;
+  seqLength = 16 + Math.floor(Math.random() * 5); // 16-20
+  document.getElementById('seq-length-display').textContent = seqLength;
+
+  // Generate sequence using shuffled unique emojis
+  const pool = [...EMOJIS].sort(() => Math.random() - 0.5);
+  sequence = pool.slice(0, seqLength);
+
+  goTo('show-sequence');
+  startBGM('game');
+  buildGrid();
+  startSequenceDisplay();
+}
+
+function buildGrid() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  // Responsive columns
+  const cols = seqLength <= 16 ? 4 : seqLength <= 20 ? 5 : 5;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  sequence.forEach((emoji, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'emoji-cell';
+    cell.id = `cell-${i}`;
+    cell.innerHTML = `${emoji}<span class="seq-num">${i+1}</span>`;
+    grid.appendChild(cell);
+  });
+}
+
+let seqDisplayTimer = null;
+function startSequenceDisplay() {
+  let i = 0;
+  const circumference = 213.6;
+  const totalTime = seqLength * 0.9; // seconds total
+  let elapsed = 0;
+  const ring = document.getElementById('progress-ring');
+  const num = document.getElementById('countdown-num');
+
+  // Highlight each cell in sequence
+  const highlight = () => {
+    if (i > 0) document.getElementById(`cell-${i-1}`)?.classList.remove('active');
+    if (i < seqLength) {
+      document.getElementById(`cell-${i}`)?.classList.add('active');
+      sfxClick();
+      i++;
+      setTimeout(highlight, 900);
+    } else {
+      // All shown
+      setTimeout(() => { goTo('recall'); buildPicker(); startRecall(); }, 600);
+    }
+  };
+
+  // Timer countdown
+  const timerInterval = setInterval(() => {
+    elapsed++;
+    const pct = elapsed / totalTime;
+    ring.style.strokeDashoffset = circumference * pct;
+    num.textContent = Math.max(0, Math.round(totalTime - elapsed));
+    if (elapsed >= totalTime + 2) clearInterval(timerInterval);
+  }, 1000);
+
+  setTimeout(highlight, 400);
+}
+
+function buildPicker() {
+  const picker = document.getElementById('emoji-picker');
+  picker.innerHTML = '';
+  const track = document.getElementById('answer-track');
+  track.innerHTML = '';
+
+  // Shuffle the emoji buttons
+  const shuffled = [...sequence].sort(() => Math.random() - 0.5);
+  const cols = seqLength <= 16 ? 4 : 5;
+  picker.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  shuffled.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'pick-btn';
+    btn.textContent = emoji;
+    btn.dataset.emoji = emoji;
+    btn.onclick = () => handlePick(btn, emoji);
+    picker.appendChild(btn);
+  });
+
+  // Build answer slots
+  for (let i = 0; i < seqLength; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'answer-slot';
+    slot.id = `slot-${i}`;
+    track.appendChild(slot);
+  }
+}
+
+function startRecall() {
+  currentInput = []; peekPenalty = 0;
+  recallStartTime = Date.now();
+  currentStreak = 0; bestStreak = 0;
+  document.getElementById('live-score').textContent = '0';
+  document.getElementById('recall-progress').style.width = '0%';
+}
+
+function handlePick(btn, emoji) {
+  if (gameEnded) return;
+  sfxClick();
+  const idx = currentInput.length;
+  currentInput.push(emoji);
+
+  const slot = document.getElementById(`slot-${idx}`);
+  if (slot) { slot.textContent = emoji; slot.classList.add('filled'); }
+
+  if (emoji === sequence[idx]) {
+    sfxCorrect();
+    if (slot) slot.classList.add('correct');
+    currentStreak++;
+    if (currentStreak > bestStreak) bestStreak = currentStreak;
+    const score = idx + 1 - peekPenalty;
+    if (gameRound === 1) gameScore1 = Math.max(0, score);
+    else gameScore2 = Math.max(0, score);
+    document.getElementById('live-score').textContent = Math.max(0, idx + 1 - peekPenalty);
+    document.getElementById('recall-progress').style.width = `${((idx+1)/seqLength)*100}%`;
+    btn.classList.add('used');
+
+    if (currentInput.length === seqLength) {
+      // Completed!
+      gameEnded = true;
+      recallTime = Math.round((Date.now() - recallStartTime) / 1000);
+      setTimeout(showResults, 500);
+    }
+  } else {
+    sfxWrong();
+    if (slot) slot.classList.add('wrong');
+    currentStreak = 0;
+    gameEnded = true;
+    recallTime = Math.round((Date.now() - recallStartTime) / 1000);
+    // Disable all picks
+    document.querySelectorAll('.pick-btn').forEach(b => b.style.pointerEvents = 'none');
+    setTimeout(showResults, 700);
+  }
+}
+
+function undoLast() {
+  if (currentInput.length === 0 || gameEnded) return;
+  sfxClick();
+  const idx = currentInput.length - 1;
+  currentInput.pop();
+  const slot = document.getElementById(`slot-${idx}`);
+  if (slot) { slot.textContent = ''; slot.className = 'answer-slot'; }
+  document.getElementById('recall-progress').style.width = `${(idx/seqLength)*100}%`;
+  // Re-enable last used button
+  const lastEmoji = sequence[idx]; // not exactly right for undos but close enough
+  document.querySelectorAll('.pick-btn').forEach(b => {
+    if (!b.classList.contains('used') || b.dataset.emoji === lastEmoji) {
+      b.classList.remove('used'); b.style.pointerEvents = '';
+    }
+  });
+}
+
+function showSequenceAgain() {
+  peekPenalty += 2;
+  sfxClick();
+  showToast('−2 pts penalty applied');
+  goTo('show-sequence');
+  document.querySelectorAll('.emoji-cell').forEach(c => c.classList.remove('active'));
+  startSequenceDisplay();
+}
+
+function showResults() {
+  stopAllBGM();
+  const score = gameRound === 1 ? gameScore1 : gameScore2;
+  const pct = Math.round((score / seqLength) * 100);
+
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-total').textContent = seqLength;
+  document.getElementById('stat-pct').textContent = pct + '%';
+  document.getElementById('stat-streak').textContent = bestStreak;
+  document.getElementById('stat-time').textContent = recallTime + 's';
+
+  // Headline & grade
+  const grades = [
+    { min:90, label:'🏆 Master', color:'var(--gold2)', headline:'Extraordinary Mind!' },
+    { min:75, label:'⭐ Expert', color:'var(--teal)', headline:'Impressive Recall!' },
+    { min:55, label:'✨ Solid', color:'var(--text)', headline:'Nice Effort!' },
+    { min:35, label:'🌱 Learning', color:'var(--rose)', headline:'Room to Grow!' },
+    { min:0,  label:'💡 Beginner', color:'var(--text2)', headline:'Just Getting Started!' },
+  ];
+  const g = grades.find(g => pct >= g.min);
+  const grade = document.getElementById('score-grade');
+  grade.textContent = g.label;
+  grade.style.background = `${g.color}22`; grade.style.color = g.color;
+  grade.style.border = `1px solid ${g.color}44`;
+  document.getElementById('result-headline').textContent = g.headline;
+
+  if (pct >= 75) sfxVictory();
+  goTo('results');
+}
+
+// ═══════════════════════════════════════════
+//  MEDITATION
+// ═══════════════════════════════════════════
+const MED_DURATION = 20 * 60; // 20 minutes (can be shortened for testing)
+// For demo, using 2 mins. Swap to 20*60 for real use.
+const MED_DURATION_ACTUAL = 2 * 60;
+
+const MED_PHASES = [
+  { label:'Phase 1 of 4', title:'Settling In', step:0, duration: 0.15 * MED_DURATION_ACTUAL, quote:'The present moment is the only moment available to us, and it is the door to all moments.', author:'Thich Nhat Hanh' },
+  { label:'Phase 2 of 4', title:'Body Awareness', step:1, duration: 0.25 * MED_DURATION_ACTUAL, quote:'You are not a drop in the ocean. You are the entire ocean in a drop.', author:'Rumi' },
+  { label:'Phase 3 of 4', title:'Mindful Flow', step:2, duration: 0.40 * MED_DURATION_ACTUAL, quote:'The mind is everything. What you think, you become.', author:'Buddha' },
+  { label:'Phase 4 of 4', title:'Integration', step:3, duration: 0.20 * MED_DURATION_ACTUAL, quote:'Peace comes from within. Do not seek it without.', author:'Siddhartha Gautama' },
+];
+
+let medTimerInt = null, breathInt = null;
+let medElapsed = 0, medPhaseIdx = 0;
+let breathPhase = 0; // 0=inhale 1=hold 2=exhale 3=hold
+
+function startMeditation() {
+  goTo('meditation');
+  sfxMedStart();
+  stopAllBGM();
+  startBGM('meditate');
+  medElapsed = 0; medPhaseIdx = 0;
+  document.getElementById('skip-med-btn').classList.remove('hidden');
+  setMedPhase(0);
+  startBreathCycle();
+
+  medTimerInt = setInterval(() => {
+    medElapsed++;
+    const phaseDur = MED_PHASES[medPhaseIdx].duration;
+    const phaseStart = MED_PHASES.slice(0, medPhaseIdx).reduce((a,p) => a + p.duration, 0);
+
+    // Phase transition
+    if (medElapsed >= phaseStart + phaseDur && medPhaseIdx < MED_PHASES.length - 1) {
+      medPhaseIdx++;
+      setMedPhase(medPhaseIdx);
+    }
+
+    // Total timer
+    const pct = (medElapsed / MED_DURATION_ACTUAL) * 100;
+    document.getElementById('med-timer-fill').style.width = pct + '%';
+    const remaining = MED_DURATION_ACTUAL - medElapsed;
+    const m = Math.floor(remaining / 60), s = remaining % 60;
+    document.getElementById('med-timer-label').textContent = `${m}:${String(s).padStart(2,'0')} remaining`;
+
+    if (medElapsed >= MED_DURATION_ACTUAL) completeMeditation();
+  }, 1000);
+}
+
+function setMedPhase(idx) {
+  const phase = MED_PHASES[idx];
+  document.getElementById('med-phase-label').textContent = phase.label;
+  document.getElementById('med-phase-title').textContent = phase.title;
+  const q = document.getElementById('med-quote');
+  q.querySelector('blockquote').textContent = `"${phase.quote}"`;
+  q.querySelector('cite').textContent = `— ${phase.author}`;
+  document.querySelectorAll('.med-step').forEach((s, i) => {
+    s.classList.toggle('active', i === phase.step);
+  });
+}
+
+const breathCycles = [
+  { text:'Breathe In', hint:'4s', class:'inhale' },
+  { text:'Hold', hint:'4s', class:'' },
+  { text:'Breathe Out', hint:'6s', class:'exhale' },
+  { text:'Hold', hint:'2s', class:'' },
+];
+const breathDurations = [4, 4, 6, 2]; // seconds
+let breathIdx = 0, breathSecond = 0;
+
+function startBreathCycle() {
+  clearInterval(breathInt);
+  breathIdx = 0; breathSecond = 0;
+  applyBreath();
+  breathInt = setInterval(tickBreath, 1000);
+}
+
+function tickBreath() {
+  breathSecond++;
+  if (breathSecond >= breathDurations[breathIdx]) {
+    breathSecond = 0;
+    breathIdx = (breathIdx + 1) % 4;
+    applyBreath();
+  } else {
+    document.getElementById('breath-count').textContent = `${breathCycles[breathIdx].hint.replace(/\d+/, breathDurations[breathIdx] - breathSecond + 's')}`;
+  }
+}
+
+function applyBreath() {
+  const bc = breathCycles[breathIdx];
+  const circle = document.getElementById('breath-circle');
+  circle.className = 'breath-circle ' + bc.class;
+  document.getElementById('breath-instruction').textContent = bc.text;
+  document.getElementById('breath-count').textContent = bc.hint;
+}
+
+function completeMeditation() {
+  clearInterval(medTimerInt); clearInterval(breathInt);
+  stopAllBGM();
+  sfxComplete();
+  document.getElementById('med-timer-fill').style.width = '100%';
+  document.getElementById('med-timer-label').textContent = 'Session Complete!';
+  // Start round 2
+  gameRound = 2;
+  setTimeout(() => {
+    goTo('pregame');
+    document.querySelector('#pregame h2').innerHTML = 'Round 2 —<br><em>Post Meditation</em>';
+    document.querySelector('#pregame .subtitle').textContent = 'You\'ve completed your meditation session. Let\'s see how your memory performs now. The same rules apply.';
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════
+//  POST GAME
+// ═══════════════════════════════════════════
+function showPostGame() {
+  stopAllBGM();
+  const diff = gameScore2 - gameScore1;
+  const improved = diff > 0;
+  const same = diff === 0;
+
+  document.getElementById('before-score').textContent = gameScore1;
+  document.getElementById('after-score').textContent = gameScore2;
+  const badge = document.getElementById('after-badge');
+  badge.textContent = diff >= 0 ? `+${diff}` : `${diff}`;
+  badge.style.background = improved ? 'rgba(112,232,160,0.15)' : 'rgba(232,165,152,0.12)';
+  badge.style.color = improved ? 'var(--success)' : 'var(--rose)';
+
+  const afterBox = document.getElementById('after-box');
+  afterBox.classList.toggle('improved', improved);
+  afterBox.classList.toggle('lower', !improved && !same);
+
+  const banner = document.getElementById('improvement-banner');
+  const pctImprove = gameScore1 > 0 ? Math.round((diff / gameScore1) * 100) : 0;
+
+  if (improved) {
+    banner.className = 'improvement-banner';
+    document.getElementById('banner-title').textContent = diff >= 5 ? '🏆 Extraordinary Result!' : diff >= 3 ? '🎉 Great Improvement!' : '✨ You Improved!';
+    document.getElementById('banner-message').textContent = `Your score jumped by ${diff} point${diff>1?'s':''} (${pctImprove}% improvement) after meditation. Your brain just demonstrated neuroplasticity in real time. This is science you can feel.`;
+    sfxVictory();
+    launchConfetti();
+    document.getElementById('postgame-headline').innerHTML = 'The Difference<br>is <em>real.</em>';
+  } else if (same) {
+    banner.className = 'improvement-banner encouragement';
+    document.getElementById('banner-title').textContent = '🌱 Stay the Course';
+    document.getElementById('banner-message').textContent = `Your score held steady — and that\'s okay. Meditation\'s deepest benefits compound over weeks, not minutes. You\'ve already taken the most important step: showing up. Keep practicing daily and you\'ll notice remarkable changes within 2–4 weeks.`;
+    document.getElementById('postgame-headline').innerHTML = 'Every practice<br>builds <em>foundation.</em>';
+  } else {
+    banner.className = 'improvement-banner encouragement';
+    document.getElementById('banner-title').textContent = '💪 Keep Believing';
+    document.getElementById('banner-message').textContent = `Scores don\'t always improve on the first try — and that\'s completely normal. Meditation is a skill, not a switch. Research shows that 21 days of consistent practice leads to measurable cognitive improvement. Your journey is just beginning. Don\'t stop.`;
+    document.getElementById('postgame-headline').innerHTML = 'Growth takes<br><em>patience.</em>';
+  }
+
+  goTo('postgame');
+}
+
+// Intercept round 2 results
+const origShowResults = showResults;
+// Override for round 2
+function handleRoundEnd() {
+  if (gameRound === 2) {
+    stopAllBGM();
+    showPostGame();
+  } else {
+    showResults();
+  }
+}
+
+// ═══════════════════════════════════════════
+//  RESTART
+// ═══════════════════════════════════════════
+function restartFull() {
+  gameRound = 1; gameScore1 = 0; gameScore2 = 0;
+  document.querySelector('#pregame h2').innerHTML = 'The Memory<br><em>Challenge</em>';
+  document.querySelector('#pregame .subtitle').textContent = 'A sequence of emojis will flash on screen. Study them carefully, then recreate the exact order from memory.';
+  goTo('pregame');
+}
+function restartMedOnly() {
+  gameRound = 2;
+  startMeditation();
+}
+
+// ═══════════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════════
+function launchConfetti() {
+  const colors = ['#4ecdc4','#c9a84c','#e8a598','#70e8a0','#f0f4ff'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+    el.style.animationDelay = Math.random() * 0.8 + 's';
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTO = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTO);
+  toastTO = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════
+//  PATCH: Route round 2 to postgame
+// ═══════════════════════════════════════════
+// Override handlePick end detection for round 2
+(function() {
+  const _handlePick = handlePick;
+  // Patch showResults to check round
+  window.showResults = function() {
+    stopAllBGM();
+    if (gameRound === 2) {
+      showPostGame(); return;
+    }
+    const score = gameScore1;
+    const pct = Math.round((score / seqLength) * 100);
+    document.getElementById('result-score').textContent = score;
+    document.getElementById('result-total').textContent = seqLength;
+    document.getElementById('stat-pct').textContent = pct + '%';
+    document.getElementById('stat-streak').textContent = bestStreak;
+    document.getElementById('stat-time').textContent = recallTime + 's';
+    const grades = [
+      { min:90, label:'🏆 Master', color:'var(--gold2)', headline:'Extraordinary Mind!' },
+      { min:75, label:'⭐ Expert', color:'var(--teal)', headline:'Impressive Recall!' },
+      { min:55, label:'✨ Solid', color:'var(--text)', headline:'Nice Effort!' },
+      { min:35, label:'🌱 Learning', color:'var(--rose)', headline:'Room to Grow!' },
+      { min:0,  label:'💡 Beginner', color:'var(--text2)', headline:'Just Getting Started!' },
+    ];
+    const g = grades.find(g => pct >= g.min);
+    const grade = document.getElementById('score-grade');
+    grade.textContent = g.label; grade.style.background = `${g.color}22`;
+    grade.style.color = g.color; grade.style.border = `1px solid ${g.color}44`;
+    document.getElementById('result-headline').textContent = g.headline;
+    if (pct >= 75) sfxVictory();
+    goTo('results');
+  };
+})();
+
+// init audio on first interaction
+document.addEventListener('click', () => { initAC(); if(AC&&AC.state==='suspended') AC.resume(); }, { once: true });
+document.addEventListener('touchstart', () => { initAC(); if(AC&&AC.state==='suspended') AC.resume(); }, { once: true });
+</script>
+</body>
+</html>
